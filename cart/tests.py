@@ -30,12 +30,12 @@ class CartAPITestCase(TestCase):
         self.assertEqual(response.data.get('product_name'), self.product.name)
         self.assertEqual(response.data.get('quantity'), 2)
 
-    # def test_list_cart_items(self):
-    #     self.client.force_authenticate(user=self.user)
-    #     cart = Cart.objects.create(user=self.user)
-    #     CartItem.objects.create(cart=cart, product=self.product, quantity=3)
-    #     response = self.client.get('/api/cart/')
-    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-    #     self.assertEqual(len(response.data), 1)
-    #     self.assertEqual(response.data[0]['product']['name'], self.product.name)
-    #     self.assertEqual(response.data[0]['quantity'], 3)
+    def test_list_cart_items(self):
+        self.client.force_authenticate(user=self.user)
+        cart = Cart.objects.create(user=self.user)
+        CartItem.objects.create(cart=cart, product=self.product, quantity=3)
+        response = self.client.get('view-cart-list')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['product']['name'], self.product.name)
+        self.assertEqual(response.data[0]['quantity'], 3)
