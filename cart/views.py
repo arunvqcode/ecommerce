@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404,render
 from rest_framework import status
 from .permissions import *
+from rest_framework.permissions import IsAuthenticated
+
+
 
 
 class ProductDetailsViewSet(viewsets.ModelViewSet):
@@ -12,15 +15,20 @@ class ProductDetailsViewSet(viewsets.ModelViewSet):
     serializer_class = ProductDetailsSerializer
     permission_classes = [IsAdminOrReadOnly]
     
-
-class AddToCartViewSet(viewsets.ModelViewSet):
-    serializer_class = ProductDetailsSerializer
-    queryset = ProductDetails.objects.all()
+    
+    
+ 
+class AddToCartViewSet(viewsets.ViewSet):
+    serializer_class = AddToCartSerializer
+    permission_classes = [IsAuthenticated]
 
     def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         user = request.user
-        product_id = request.data.get('product_id')
-        quantity = request.data.get('quantity', 1)
+        product_id = serializer.validated_data['product_id']
+        quantity = serializer.validated_data.get('quantity', 1)
 
         try:
             product = ProductDetails.objects.get(pk=product_id)
@@ -28,16 +36,24 @@ class AddToCartViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Product not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         cart, created = Cart.objects.get_or_create(user=user)
-        cart_item, _ = CartItem.objects.get_or_create(cart=cart, product=product)
-        cart_item.quantity += int(quantity)
-        cart_item.save()
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product, defaults={'quantity': quantity})
+        
+        if not created:
+            cart_item.quantity += int(quantity)
+            cart_item.save()
 
-        return Response({'message': 'Product added to cart successfully.'}, status=status.HTTP_201_CREATED)
+        return Response({'message': 'Product added to cart successfully.',
+                         'cart_item_id': cart_item.id,
+                         'product_name': product.name,
+                         'quantity': cart_item.quantity},
+                        status=status.HTTP_201_CREATED)
+    
 
 
 class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartItemSerializer
     queryset = CartItem.objects.all()
+    permission_classes = [IsAuthenticated]
 
     def list(self, request):
         user = request.user

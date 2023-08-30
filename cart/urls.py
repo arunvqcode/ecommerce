@@ -8,6 +8,6 @@ router = SimpleRouter()
 
 router.register('product',ProductDetailsViewSet, basename="product")
 router.register('cart/add',AddToCartViewSet,basename='add-to-cart')
-router.register('cart', CartViewSet, basename='view-cart')
+router.register('cartitems', CartViewSet, basename='view-cart')
 
 
