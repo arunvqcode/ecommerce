@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404,render
 from rest_framework import status
 from .permissions import *
 from rest_framework.permissions import IsAuthenticated
+# from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 
 
 
@@ -15,9 +16,7 @@ class ProductDetailsViewSet(viewsets.ModelViewSet):
     serializer_class = ProductDetailsSerializer
     permission_classes = [IsAdminOrReadOnly]
     
-    
-    
- 
+     
 class AddToCartViewSet(viewsets.ViewSet):
     serializer_class = AddToCartSerializer
     permission_classes = [IsAuthenticated]
@@ -30,6 +29,7 @@ class AddToCartViewSet(viewsets.ViewSet):
         product_id = serializer.validated_data['product_id']
         quantity = serializer.validated_data.get('quantity', 1)
 
+    
         try:
             product = ProductDetails.objects.get(pk=product_id)
         except ProductDetails.DoesNotExist:
